@@ -1,0 +1,17 @@
+# Binary build result
+/dashboard-api
+/api
+/server
+*.exe
+
+# Environments / secrets
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+EOF
