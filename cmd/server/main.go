@@ -8,9 +8,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	finance "github.com/yasersyafa/dashboard-api/internal/finance/category"
 	"github.com/yasersyafa/dashboard-api/internal/gen"
 	"github.com/yasersyafa/dashboard-api/internal/task"
 )
+
+type API struct {
+	*task.Handler
+	*finance.CategoryHandler
+}
 
 func main() {
 	ctx := context.Background()
@@ -36,12 +42,22 @@ func main() {
 	taskService := task.NewService(taskRepo)
 	taskHandler := task.NewHandler(taskService)
 
+	// finance - Category
+	categoryRepo := finance.NewPostgresCategoryRepository(pool)
+	categoryService := finance.NewCategoryService(categoryRepo)
+	categoryHandler := finance.NewCategoryHandler(categoryService)
+
+	api := &API {
+		Handler: taskHandler,
+		CategoryHandler: categoryHandler,
+	}
+
 	router := gin.Default()
 
 	router.StaticFile("/docs", "./docs.html")
 	router.StaticFile("/api/openapi.yaml", "./api/openapi.yaml")
 
-	gen.RegisterHandlers(router, taskHandler)
+	gen.RegisterHandlers(router, api)
 
 	router.GET("/health", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{

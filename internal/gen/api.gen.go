@@ -105,7 +105,7 @@ type CategoryUsage struct {
 	Name        string             `json:"name"`
 	NameKey     string             `json:"nameKey"`
 	OverBudget  bool               `json:"overBudget"`
-	PercentUsed float32            `json:"percentUsed"`
+	PercentUsed float64            `json:"percentUsed"`
 	Spent       int                `json:"spent"`
 	UpdatedAt   time.Time          `json:"updatedAt"`
 }

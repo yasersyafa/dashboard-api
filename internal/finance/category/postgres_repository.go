@@ -45,7 +45,7 @@ func (r *PostgresCategoryRepository) List(ctx context.Context) ([]Category, erro
 	return categories, rows.Err()
 }
 
-func (r *PostgresCategoryRepository) ListUsage(ctx context.Context, id uuid.UUID) ([]CategoryUsage, error) {
+func (r *PostgresCategoryRepository) ListUsage(ctx context.Context) ([]CategoryUsage, error) {
 	query := `
 		SELECT c.id, c.name, c.name_key, c.budget, c.created_at, c.updated_at,
 		COALESCE(SUM(t.amount) FILTER (

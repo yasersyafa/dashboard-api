@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/yasersyafa/dashboard-api/internal/gen"
+	"github.com/yasersyafa/dashboard-api/pkg/httpx"
 )
 
 type Handler struct {
@@ -30,7 +31,7 @@ func (h *Handler) ListTasks(c *gin.Context, params gen.ListTasksParams) {
 
 	tasks, err := h.service.List(c.Request.Context(), filter)
 	if err != nil {
-		respondError(c, http.StatusInternalServerError, "failed to list tasks")
+		httpx.RespondError(c, http.StatusInternalServerError, "failed to list tasks")
 		return
 	}
 
@@ -46,7 +47,7 @@ func (h *Handler) ListRecentTasks(c *gin.Context, params gen.ListRecentTasksPara
 
 	tasks, err := h.service.ListRecent(c.Request.Context(), take)
 	if err != nil {
-		respondError(c, http.StatusInternalServerError, "failed to list recent tasks")
+		httpx.RespondError(c, http.StatusInternalServerError, "failed to list recent tasks")
 		return
 	}
 
@@ -57,7 +58,7 @@ func (h *Handler) ListRecentTasks(c *gin.Context, params gen.ListRecentTasksPara
 func (h *Handler) GetTaskStats(c *gin.Context) {
 	stats, err := h.service.Stats(c.Request.Context())
 	if err != nil {
-		respondError(c, http.StatusInternalServerError, "failed to get stats")
+		httpx.RespondError(c, http.StatusInternalServerError, "failed to get stats")
 		return
 	}
 
@@ -68,11 +69,11 @@ func (h *Handler) GetTaskStats(c *gin.Context) {
 func (h *Handler) GetTask(c *gin.Context, id uuid.UUID) {
 	t, err := h.service.Get(c.Request.Context(), id)
 	if errors.Is(err, ErrNotFound) {
-		respondError(c, http.StatusNotFound, "task not found")
+		httpx.RespondError(c, http.StatusNotFound, "task not found")
 		return
 	}
 	if err != nil {
-		respondError(c, http.StatusInternalServerError, "failed to get task")
+		httpx.RespondError(c, http.StatusInternalServerError, "failed to get task")
 		return
 	}
 
@@ -83,7 +84,7 @@ func (h *Handler) GetTask(c *gin.Context, id uuid.UUID) {
 func (h *Handler) CreateTask(c *gin.Context) {
 	var req gen.CreateTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		respondError(c, http.StatusBadRequest, "invalid request body")
+		httpx.RespondError(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
@@ -99,11 +100,11 @@ func (h *Handler) CreateTask(c *gin.Context) {
 
 	created, err := h.service.Create(c.Request.Context(), input)
 	if isValidationErr(err) {
-		respondError(c, http.StatusBadRequest, err.Error())
+		httpx.RespondError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 	if err != nil {
-		respondError(c, http.StatusInternalServerError, "failed to create task")
+		httpx.RespondError(c, http.StatusInternalServerError, "failed to create task")
 		return
 	}
 
@@ -114,7 +115,7 @@ func (h *Handler) CreateTask(c *gin.Context) {
 func (h *Handler) UpdateTask(c *gin.Context, id uuid.UUID) {
 	var req gen.UpdateTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		respondError(c, http.StatusBadRequest, "invalid request body")
+		httpx.RespondError(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
@@ -131,15 +132,15 @@ func (h *Handler) UpdateTask(c *gin.Context, id uuid.UUID) {
 
 	updated, err := h.service.Update(c.Request.Context(), id, input)
 	if errors.Is(err, ErrNotFound) {
-		respondError(c, http.StatusNotFound, "task not found")
+		httpx.RespondError(c, http.StatusNotFound, "task not found")
 		return
 	}
 	if isValidationErr(err) {
-		respondError(c, http.StatusBadRequest, err.Error())
+		httpx.RespondError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 	if err != nil {
-		respondError(c, http.StatusInternalServerError, "failed to update task")
+		httpx.RespondError(c, http.StatusInternalServerError, "failed to update task")
 		return
 	}
 
@@ -150,11 +151,11 @@ func (h *Handler) UpdateTask(c *gin.Context, id uuid.UUID) {
 func (h *Handler) ToggleTask(c *gin.Context, id uuid.UUID) {
 	updated, err := h.service.Toggle(c.Request.Context(), id)
 	if errors.Is(err, ErrNotFound) {
-		respondError(c, http.StatusNotFound, "task not found")
+		httpx.RespondError(c, http.StatusNotFound, "task not found")
 		return
 	}
 	if err != nil {
-		respondError(c, http.StatusInternalServerError, "failed to toggle task")
+		httpx.RespondError(c, http.StatusInternalServerError, "failed to toggle task")
 		return
 	}
 
@@ -165,11 +166,11 @@ func (h *Handler) ToggleTask(c *gin.Context, id uuid.UUID) {
 func (h *Handler) DeleteTask(c *gin.Context, id uuid.UUID) {
 	err := h.service.Delete(c.Request.Context(), id)
 	if errors.Is(err, ErrNotFound) {
-		respondError(c, http.StatusNotFound, "task not found")
+		httpx.RespondError(c, http.StatusNotFound, "task not found")
 		return
 	}
 	if err != nil {
-		respondError(c, http.StatusInternalServerError, "failed to delete task")
+		httpx.RespondError(c, http.StatusInternalServerError, "failed to delete task")
 		return
 	}
 
@@ -180,18 +181,14 @@ func (h *Handler) DeleteTask(c *gin.Context, id uuid.UUID) {
 func (h *Handler) ClearCompletedTasks(c *gin.Context) {
 	count, err := h.service.DeleteCompleted(c.Request.Context())
 	if err != nil {
-		respondError(c, http.StatusInternalServerError, "failed to clear completed tasks")
+		httpx.RespondError(c, http.StatusInternalServerError, "failed to clear completed tasks")
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": gin.H{"deletedCount": count}})
 }
 
-// helpers
-
-func respondError(c *gin.Context, status int, message string) {
-	c.JSON(status, gin.H{"error": message})
-}
+// helper functions
 
 func isValidationErr(err error) bool {
 	switch {
