@@ -41,6 +41,24 @@ func (e TaskPriority) Valid() bool {
 	}
 }
 
+// Defines values for TransactionType.
+const (
+	EXPENSE TransactionType = "EXPENSE"
+	INCOME  TransactionType = "INCOME"
+)
+
+// Valid indicates whether the value is a known member of the TransactionType enum.
+func (e TransactionType) Valid() bool {
+	switch e {
+	case EXPENSE:
+		return true
+	case INCOME:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ListTasksParamsFilter.
 const (
 	Active ListTasksParamsFilter = "active"
@@ -62,6 +80,42 @@ func (e ListTasksParamsFilter) Valid() bool {
 	}
 }
 
+// Category defines model for Category.
+type Category struct {
+	Budget    *int               `json:"budget,omitempty"`
+	CreatedAt time.Time          `json:"createdAt"`
+	Id        openapi_types.UUID `json:"id"`
+	Name      string             `json:"name"`
+	NameKey   string             `json:"nameKey"`
+	UpdatedAt time.Time          `json:"updatedAt"`
+}
+
+// CategorySpending defines model for CategorySpending.
+type CategorySpending struct {
+	Amount       int                `json:"amount"`
+	CategoryId   openapi_types.UUID `json:"categoryId"`
+	CategoryName string             `json:"categoryName"`
+}
+
+// CategoryUsage defines model for CategoryUsage.
+type CategoryUsage struct {
+	Budget      *int               `json:"budget,omitempty"`
+	CreatedAt   time.Time          `json:"createdAt"`
+	Id          openapi_types.UUID `json:"id"`
+	Name        string             `json:"name"`
+	NameKey     string             `json:"nameKey"`
+	OverBudget  bool               `json:"overBudget"`
+	PercentUsed float32            `json:"percentUsed"`
+	Spent       int                `json:"spent"`
+	UpdatedAt   time.Time          `json:"updatedAt"`
+}
+
+// CreateCategoryRequest defines model for CreateCategoryRequest.
+type CreateCategoryRequest struct {
+	Budget *int   `json:"budget,omitempty"`
+	Name   string `json:"name"`
+}
+
 // CreateTaskRequest defines model for CreateTaskRequest.
 type CreateTaskRequest struct {
 	DueDate  *openapi_types.Date `json:"dueDate,omitempty"`
@@ -70,10 +124,44 @@ type CreateTaskRequest struct {
 	Title    string              `json:"title"`
 }
 
+// CreateTransactionRequest defines model for CreateTransactionRequest.
+type CreateTransactionRequest struct {
+	Amount     int                `json:"amount"`
+	CategoryId openapi_types.UUID `json:"categoryId"`
+	Note       *string            `json:"note,omitempty"`
+	OccurredAt time.Time          `json:"occurredAt"`
+	Type       TransactionType    `json:"type"`
+}
+
+// DailyFinance defines model for DailyFinance.
+type DailyFinance struct {
+	Date    openapi_types.Date `json:"date"`
+	Expense int                `json:"expense"`
+	Income  int                `json:"income"`
+}
+
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	Error  *string                   `json:"error,omitempty"`
 	Issues *[]map[string]interface{} `json:"issues,omitempty"`
+}
+
+// FinanceSummary defines model for FinanceSummary.
+type FinanceSummary struct {
+	Expense          int `json:"expense"`
+	Income           int `json:"income"`
+	Net              int `json:"net"`
+	OverBudgetCount  int `json:"overBudgetCount"`
+	TotalBudgeted    int `json:"totalBudgeted"`
+	TransactionCount int `json:"transactionCount"`
+}
+
+// MonthlyFinance defines model for MonthlyFinance.
+type MonthlyFinance struct {
+	Expense int    `json:"expense"`
+	Income  int    `json:"income"`
+	Month   string `json:"month"`
+	Net     int    `json:"net"`
 }
 
 // Task defines model for Task.
@@ -100,6 +188,28 @@ type TaskStats struct {
 	Total       *int     `json:"total,omitempty"`
 }
 
+// Transaction defines model for Transaction.
+type Transaction struct {
+	Amount       int                `json:"amount"`
+	CategoryId   openapi_types.UUID `json:"categoryId"`
+	CategoryName string             `json:"categoryName"`
+	CreatedAt    time.Time          `json:"createdAt"`
+	Id           openapi_types.UUID `json:"id"`
+	Note         *string            `json:"note,omitempty"`
+	OccurredAt   time.Time          `json:"occurredAt"`
+	Type         TransactionType    `json:"type"`
+	UpdatedAt    time.Time          `json:"updatedAt"`
+}
+
+// TransactionType defines model for TransactionType.
+type TransactionType string
+
+// UpdateCategoryRequest defines model for UpdateCategoryRequest.
+type UpdateCategoryRequest struct {
+	Budget *int    `json:"budget,omitempty"`
+	Name   *string `json:"name,omitempty"`
+}
+
 // UpdateTaskRequest defines model for UpdateTaskRequest.
 type UpdateTaskRequest struct {
 	Done     *bool               `json:"done,omitempty"`
@@ -112,8 +222,41 @@ type UpdateTaskRequest struct {
 // BadRequest defines model for BadRequest.
 type BadRequest = ErrorResponse
 
+// Conflict defines model for Conflict.
+type Conflict = ErrorResponse
+
 // NotFound defines model for NotFound.
 type NotFound = ErrorResponse
+
+// GetFinanceCalendarParams defines parameters for GetFinanceCalendar.
+type GetFinanceCalendarParams struct {
+	Month string           `form:"month" json:"month"`
+	Type  *TransactionType `form:"type,omitempty" json:"type,omitempty"`
+}
+
+// GetCategorySpendingParams defines parameters for GetCategorySpending.
+type GetCategorySpendingParams struct {
+	Month string `form:"month" json:"month"`
+}
+
+// GetMonthlyFinanceParams defines parameters for GetMonthlyFinance.
+type GetMonthlyFinanceParams struct {
+	Months *int `form:"months,omitempty" json:"months,omitempty"`
+}
+
+// ListTransactionsParams defines parameters for ListTransactions.
+type ListTransactionsParams struct {
+	Type       *TransactionType    `form:"type,omitempty" json:"type,omitempty"`
+	CategoryId *openapi_types.UUID `form:"categoryId,omitempty" json:"categoryId,omitempty"`
+	From       *openapi_types.Date `form:"from,omitempty" json:"from,omitempty"`
+	To         *openapi_types.Date `form:"to,omitempty" json:"to,omitempty"`
+	Take       *int                `form:"take,omitempty" json:"take,omitempty"`
+}
+
+// ListRecentTransactionsParams defines parameters for ListRecentTransactions.
+type ListRecentTransactionsParams struct {
+	Take *int `form:"take,omitempty" json:"take,omitempty"`
+}
 
 // ListTasksParams defines parameters for ListTasks.
 type ListTasksParams struct {
@@ -128,6 +271,15 @@ type ListRecentTasksParams struct {
 	Take *int `form:"take,omitempty" json:"take,omitempty"`
 }
 
+// CreateCategoryJSONRequestBody defines body for CreateCategory for application/json ContentType.
+type CreateCategoryJSONRequestBody = CreateCategoryRequest
+
+// UpdateCategoryJSONRequestBody defines body for UpdateCategory for application/json ContentType.
+type UpdateCategoryJSONRequestBody = UpdateCategoryRequest
+
+// CreateTransactionJSONRequestBody defines body for CreateTransaction for application/json ContentType.
+type CreateTransactionJSONRequestBody = CreateTransactionRequest
+
 // CreateTaskJSONRequestBody defines body for CreateTask for application/json ContentType.
 type CreateTaskJSONRequestBody = CreateTaskRequest
 
@@ -136,6 +288,45 @@ type UpdateTaskJSONRequestBody = UpdateTaskRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// GetFinanceCalendar Income/expense per hari dalam 1 bulan
+	// (GET /api/finance/calendar)
+	GetFinanceCalendar(c *gin.Context, params GetFinanceCalendarParams)
+	// ListCategories List kategori
+	// (GET /api/finance/categories)
+	ListCategories(c *gin.Context)
+	// CreateCategory Create kategori
+	// (POST /api/finance/categories)
+	CreateCategory(c *gin.Context)
+	// ListCategoriesUsage Kategori + spend bulan ini + %budget + overBudget flag
+	// (GET /api/finance/categories/usage)
+	ListCategoriesUsage(c *gin.Context)
+	// DeleteCategory Delete kategori (ditolak kalau masih ada transaksi terkait)
+	// (DELETE /api/finance/categories/{id})
+	DeleteCategory(c *gin.Context, id openapi_types.UUID)
+	// UpdateCategory Update name/budget kategori
+	// (PATCH /api/finance/categories/{id})
+	UpdateCategory(c *gin.Context, id openapi_types.UUID)
+	// GetCategorySpending Expense per kategori bulan tsb (pie chart)
+	// (GET /api/finance/category-spending)
+	GetCategorySpending(c *gin.Context, params GetCategorySpendingParams)
+	// GetMonthlyFinance Income/expense/net per bulan (rolling N bulan)
+	// (GET /api/finance/monthly)
+	GetMonthlyFinance(c *gin.Context, params GetMonthlyFinanceParams)
+	// GetFinanceSummary Income, expense, net, dll bulan berjalan
+	// (GET /api/finance/summary)
+	GetFinanceSummary(c *gin.Context)
+	// ListTransactions List transaksi dengan filter
+	// (GET /api/finance/transactions)
+	ListTransactions(c *gin.Context, params ListTransactionsParams)
+	// CreateTransaction Create transaksi
+	// (POST /api/finance/transactions)
+	CreateTransaction(c *gin.Context)
+	// ListRecentTransactions Transaksi terbaru (preview dashboard)
+	// (GET /api/finance/transactions/recent)
+	ListRecentTransactions(c *gin.Context, params ListRecentTransactionsParams)
+	// DeleteTransaction Delete transaksi
+	// (DELETE /api/finance/transactions/{id})
+	DeleteTransaction(c *gin.Context, id openapi_types.UUID)
 	// ListTasks List semua task
 	// (GET /api/tasks)
 	ListTasks(c *gin.Context, params ListTasksParams)
@@ -173,6 +364,321 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(c *gin.Context)
+
+// GetFinanceCalendar operation middleware
+func (siw *ServerInterfaceWrapper) GetFinanceCalendar(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetFinanceCalendarParams
+
+	// ------------- Required query parameter "month" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "month", c.Request.URL.Query(), &params.Month, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter month: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "type" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "type", c.Request.URL.Query(), &params.Type, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter type: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetFinanceCalendar(c, params)
+}
+
+// ListCategories operation middleware
+func (siw *ServerInterfaceWrapper) ListCategories(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListCategories(c)
+}
+
+// CreateCategory operation middleware
+func (siw *ServerInterfaceWrapper) CreateCategory(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CreateCategory(c)
+}
+
+// ListCategoriesUsage operation middleware
+func (siw *ServerInterfaceWrapper) ListCategoriesUsage(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListCategoriesUsage(c)
+}
+
+// DeleteCategory operation middleware
+func (siw *ServerInterfaceWrapper) DeleteCategory(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.DeleteCategory(c, id)
+}
+
+// UpdateCategory operation middleware
+func (siw *ServerInterfaceWrapper) UpdateCategory(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateCategory(c, id)
+}
+
+// GetCategorySpending operation middleware
+func (siw *ServerInterfaceWrapper) GetCategorySpending(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetCategorySpendingParams
+
+	// ------------- Required query parameter "month" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "month", c.Request.URL.Query(), &params.Month, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter month: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetCategorySpending(c, params)
+}
+
+// GetMonthlyFinance operation middleware
+func (siw *ServerInterfaceWrapper) GetMonthlyFinance(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetMonthlyFinanceParams
+
+	// ------------- Optional query parameter "months" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "months", c.Request.URL.Query(), &params.Months, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter months: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetMonthlyFinance(c, params)
+}
+
+// GetFinanceSummary operation middleware
+func (siw *ServerInterfaceWrapper) GetFinanceSummary(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetFinanceSummary(c)
+}
+
+// ListTransactions operation middleware
+func (siw *ServerInterfaceWrapper) ListTransactions(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListTransactionsParams
+
+	// ------------- Optional query parameter "type" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "type", c.Request.URL.Query(), &params.Type, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter type: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "categoryId" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "categoryId", c.Request.URL.Query(), &params.CategoryId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter categoryId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "from" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "from", c.Request.URL.Query(), &params.From, runtime.BindQueryParameterOptions{Type: "string", Format: "date"})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter from: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "to" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "to", c.Request.URL.Query(), &params.To, runtime.BindQueryParameterOptions{Type: "string", Format: "date"})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter to: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "take" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "take", c.Request.URL.Query(), &params.Take, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter take: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListTransactions(c, params)
+}
+
+// CreateTransaction operation middleware
+func (siw *ServerInterfaceWrapper) CreateTransaction(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CreateTransaction(c)
+}
+
+// ListRecentTransactions operation middleware
+func (siw *ServerInterfaceWrapper) ListRecentTransactions(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListRecentTransactionsParams
+
+	// ------------- Optional query parameter "take" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "take", c.Request.URL.Query(), &params.Take, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter take: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListRecentTransactions(c, params)
+}
+
+// DeleteTransaction operation middleware
+func (siw *ServerInterfaceWrapper) DeleteTransaction(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.DeleteTransaction(c, id)
+}
 
 // ListTasks operation middleware
 func (siw *ServerInterfaceWrapper) ListTasks(c *gin.Context) {
@@ -403,6 +909,19 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/api/tasks/:id", wrapper.GetTask)
 	router.PATCH(options.BaseURL+"/api/tasks/:id", wrapper.UpdateTask)
 	router.POST(options.BaseURL+"/api/tasks/:id/toggle", wrapper.ToggleTask)
+	router.GET(options.BaseURL+"/api/finance/categories", wrapper.ListCategories)
+	router.POST(options.BaseURL+"/api/finance/categories", wrapper.CreateCategory)
+	router.GET(options.BaseURL+"/api/finance/categories/usage", wrapper.ListCategoriesUsage)
+	router.DELETE(options.BaseURL+"/api/finance/categories/:id", wrapper.DeleteCategory)
+	router.PATCH(options.BaseURL+"/api/finance/categories/:id", wrapper.UpdateCategory)
+	router.GET(options.BaseURL+"/api/finance/transactions", wrapper.ListTransactions)
+	router.POST(options.BaseURL+"/api/finance/transactions", wrapper.CreateTransaction)
+	router.GET(options.BaseURL+"/api/finance/transactions/recent", wrapper.ListRecentTransactions)
+	router.DELETE(options.BaseURL+"/api/finance/transactions/:id", wrapper.DeleteTransaction)
+	router.GET(options.BaseURL+"/api/finance/summary", wrapper.GetFinanceSummary)
+	router.GET(options.BaseURL+"/api/finance/monthly", wrapper.GetMonthlyFinance)
+	router.GET(options.BaseURL+"/api/finance/calendar", wrapper.GetFinanceCalendar)
+	router.GET(options.BaseURL+"/api/finance/category-spending", wrapper.GetCategorySpending)
 }
 
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
@@ -410,24 +929,42 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
